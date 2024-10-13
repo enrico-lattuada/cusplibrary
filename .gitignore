@@ -1,5 +1,8 @@
 syntax: glob
 
+# Ignore the python venv
+venv/
+
 # Ignore files left by editors
 *~
 *.bak
