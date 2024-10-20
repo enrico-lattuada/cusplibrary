@@ -34,6 +34,9 @@
 #include <thrust/iterator/counting_iterator.h>
 #include <thrust/iterator/permutation_iterator.h>
 #include <thrust/iterator/zip_iterator.h>
+#if THRUST_VERSION >= 200500
+#include <cuda/std/type_traits>
+#endif
 
 namespace cusp
 {
@@ -49,10 +52,17 @@ namespace detail
 
 template <typename ,typename ,typename> struct logical_to_other_physical_functor;
 
+#if THRUST_VERSION >= 200500
+template<typename MatrixType, typename CompareTag>
+struct is_matrix_type
+  : thrust::detail::integral_constant<bool,::cuda::std::is_same<typename MatrixType::format,CompareTag>::value>
+{};
+#else
 template<typename MatrixType, typename CompareTag>
 struct is_matrix_type
   : thrust::detail::integral_constant<bool,thrust::detail::is_same<typename MatrixType::format,CompareTag>::value>
 {};
+#endif
 
 template<typename MatrixType> struct is_array2d : is_matrix_type<MatrixType,cusp::array2d_format> {};
 template<typename MatrixType> struct is_coo     : is_matrix_type<MatrixType,cusp::coo_format> {};
@@ -151,7 +161,11 @@ struct coo_view_type<RowArray,ColumnArray,ValueArray,cusp::csr_format>
     typedef typename ValueArray::value_type                                                            ValueType;
     typedef typename ValueArray::memory_space                                                          MemorySpace;
 
+    #if THRUST_VERSION >= 200500
+    typedef typename ::cuda::std::__remove_const_t<IndexType>                                          TempType;
+    #else
     typedef typename thrust::detail::remove_const<IndexType>::type                                     TempType;
+    #endif
     typedef cusp::array1d<TempType,MemorySpace>                                                        Array1;
     typedef cusp::array1d_view<typename ColumnArray::iterator>                                         Array2;
     typedef cusp::array1d_view<typename ValueArray::iterator>                                          Array3;
@@ -170,7 +184,11 @@ struct coo_view_type<RowArray,ColumnArray,ValueArray,cusp::dia_format>
     typedef typename ValueArray::value_type   ValueType;
     typedef typename ValueArray::memory_space MemorySpace;
 
+    #if THRUST_VERSION >= 200500
+    typedef typename ::cuda::std::__remove_const_t<IndexType>                                            TempType;
+    #else
     typedef typename thrust::detail::remove_const<IndexType>::type                                       TempType;
+    #endif
     typedef typename thrust::counting_iterator<TempType>                                                 CountingIterator;
     typedef typename thrust::transform_iterator<cusp::divide_value<TempType>, CountingIterator>          RowIndexIterator;
     typedef typename cusp::array1d<TempType,MemorySpace>::iterator                                       IndexIterator;
@@ -205,7 +223,11 @@ struct coo_view_type<RowArray,ColumnArray,ValueArray,cusp::ell_format>
     typedef typename ValueArray::value_type   ValueType;
     typedef typename ValueArray::memory_space MemorySpace;
 
+    #if THRUST_VERSION >= 200500
+    typedef typename ::cuda::std::__remove_const_t<IndexType>                                            TempType;
+    #else
     typedef typename thrust::detail::remove_const<IndexType>::type                                       TempType;
+    #endif
     typedef typename thrust::counting_iterator<TempType>                                                 CountingIterator;
     typedef thrust::transform_iterator<cusp::divide_value<TempType>, CountingIterator>                   RowIndexIterator;
     typedef typename ColumnArray::iterator                                                               ColumnIndexIterator;
@@ -235,7 +257,11 @@ struct coo_view_type<RowArray,ColumnArray,ValueArray,cusp::hyb_format>
     typedef typename ValueArray::value_type   ValueType;
     typedef typename ValueArray::memory_space MemorySpace;
 
+    #if THRUST_VERSION >= 200500
+    typedef typename ::cuda::std::__remove_const_t<IndexType>                                            TempType;
+    #else
     typedef typename thrust::detail::remove_const<IndexType>::type                                       TempType;
+    #endif
 
     typedef coo_view_type<RowArray,ColumnArray,ValueArray,cusp::ell_format>                              ell_view_type;
     typedef coo_matrix_view<RowArray,ColumnArray,ValueArray>                                             coo_view;

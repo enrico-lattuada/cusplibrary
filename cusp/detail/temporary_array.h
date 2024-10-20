@@ -27,6 +27,10 @@
 #include <thrust/iterator/constant_iterator.h>
 #include <thrust/detail/temporary_array.h>
 
+#if THRUST_VERSION >= 200500
+#include <cuda/std/type_traits>
+#endif
+
 #if THRUST_VERSION >= 100800
 #define TEMP_HOST_DEVICE_DECORATORS __host__
 #else
@@ -75,6 +79,15 @@ public:
     TEMP_HOST_DEVICE_DECORATORS
     temporary_array(int uninit, thrust::execution_policy<System> &system, size_type n) : super_t(uninit, system, n) {};
 
+    #if THRUST_VERSION >= 200500
+    template<typename InputIterator>
+    TEMP_HOST_DEVICE_DECORATORS
+    temporary_array(thrust::execution_policy<System> &system,
+                    InputIterator first,
+                    size_type n,
+                    typename thrust::detail::disable_if<::cuda::std::is_integral<InputIterator>::value>::type* = 0)
+        : super_t(system, first, n) {}
+    #else
     template<typename InputIterator>
     TEMP_HOST_DEVICE_DECORATORS
     temporary_array(thrust::execution_policy<System> &system,
@@ -82,6 +95,7 @@ public:
                     size_type n,
                     typename thrust::detail::disable_if<thrust::detail::is_integral<InputIterator>::value>::type* = 0)
         : super_t(system, first, n) {}
+    #endif
 
     template<typename InputIterator, typename InputSystem>
     TEMP_HOST_DEVICE_DECORATORS

@@ -24,6 +24,10 @@
 #endif
 #include <math.h>
 
+#if THRUST_VERSION >= 200500
+#include <cuda/std/type_traits>
+#endif
+
 namespace cusp
 {
 namespace gallery
@@ -55,6 +59,34 @@ void diffusion(MatrixType& matrix,
     ValueType d;
     ValueType e;
 
+    #if THRUST_VERSION >= 200500
+    if( ::cuda::std::is_same<Method, FE>::value )
+    {
+        a = (-1.0*eps - 1.0)*CC + (-1.0*eps - 1.0)*SS + ( 3.0*eps - 3.0)*CS;
+        b = ( 2.0*eps - 4.0)*CC + (-4.0*eps + 2.0)*SS;
+        c = (-1.0*eps - 1.0)*CC + (-1.0*eps - 1.0)*SS + (-3.0*eps + 3.0)*CS;
+        d = (-4.0*eps + 2.0)*CC + ( 2.0*eps - 4.0)*SS;
+        e = ( 8.0*eps + 8.0)*CC + ( 8.0*eps + 8.0)*SS;
+
+        a /= 6.0;
+        b /= 6.0;
+        c /= 6.0;
+        d /= 6.0;
+        e /= 6.0;
+    }
+    else if( ::cuda::std::is_same<Method, FD>::value )
+    {
+        a = 0.5 * (eps-1.0) * CS;
+        b = -(eps*SS + CC);
+        c = -a;
+        d = -(eps*CC + SS);
+        e = 2.0 * (eps+1.0);
+    }
+    else
+    {
+        throw cusp::invalid_input_exception("unrecognized discretization method");
+    }
+    #else
     if( thrust::detail::is_same<Method, FE>::value )
     {
         a = (-1.0*eps - 1.0)*CC + (-1.0*eps - 1.0)*SS + ( 3.0*eps - 3.0)*CS;
@@ -81,6 +113,7 @@ void diffusion(MatrixType& matrix,
     {
         throw cusp::invalid_input_exception("unrecognized discretization method");
     }
+    #endif
 
     cusp::array1d<StencilPoint, MemorySpace> stencil;
 

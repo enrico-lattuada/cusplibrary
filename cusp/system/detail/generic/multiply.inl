@@ -18,6 +18,9 @@
 
 #include <thrust/detail/config.h>
 #include <cusp/detail/format.h>
+#if THRUST_VERSION >= 200500
+#include <cuda/std/type_traits>
+#endif
 
 #include <cusp/functional.h>
 
@@ -49,6 +52,43 @@ struct has_member_operator_exec
 : has_member_operator_exec_impl<LinearOperator, void(thrust::execution_policy<DerivedPolicy>&,const MatrixOrVector1&,MatrixOrVector2&)>
 {};
 
+#if THRUST_VERSION >= 200500
+template <typename DerivedPolicy,
+          typename LinearOperator,
+          typename MatrixOrVector1,
+          typename MatrixOrVector2>
+typename ::cuda::std::__enable_if_t<
+::cuda::std::conjunction<
+  has_member_operator_exec<DerivedPolicy,LinearOperator,MatrixOrVector1,MatrixOrVector2>,
+  ::cuda::std::is_convertible<typename LinearOperator::format,cusp::unknown_format>
+  >::value
+>
+multiply(thrust::execution_policy<DerivedPolicy> &exec,
+         const LinearOperator&  A,
+         const MatrixOrVector1& B,
+               MatrixOrVector2& C)
+{
+    const_cast<LinearOperator&>(A)(exec, B, C);
+}
+
+template <typename DerivedPolicy,
+          typename LinearOperator,
+          typename MatrixOrVector1,
+          typename MatrixOrVector2>
+typename ::cuda::std::__enable_if_t<
+::cuda::std::conjunction<
+  thrust::detail::not_<has_member_operator_exec<DerivedPolicy,LinearOperator,MatrixOrVector1,MatrixOrVector2> >,
+  ::cuda::std::is_convertible<typename LinearOperator::format,cusp::unknown_format>
+  >::value
+>::type
+multiply(thrust::execution_policy<DerivedPolicy> &exec,
+         const LinearOperator&  A,
+         const MatrixOrVector1& B,
+               MatrixOrVector2& C)
+{
+    const_cast<LinearOperator&>(A)(B, C);
+}
+#else
 template <typename DerivedPolicy,
           typename LinearOperator,
           typename MatrixOrVector1,
@@ -84,6 +124,7 @@ multiply(thrust::execution_policy<DerivedPolicy> &exec,
 {
     const_cast<LinearOperator&>(A)(B, C);
 }
+#endif
 
 template <typename DerivedPolicy,
           typename LinearOperator,

@@ -2,6 +2,10 @@
 
 #include <cusp/detail/format.h>
 
+#if THRUST_VERSION >= 200500
+#include <cuda/std/type_traits>
+#endif
+
 #include <cusp/coo_matrix.h>
 #include <cusp/csr_matrix.h>
 #include <cusp/dia_matrix.h>
@@ -19,70 +23,119 @@ typedef cusp::hyb_matrix<int, float, cusp::host_memory> HYB;
 void TestMatrixFormatArray1d(void)
 {
     typedef A1D::format format;
+    #if THRUST_VERSION >= 200500
+    ASSERT_EQUAL((bool) (::cuda::std::is_same<format,cusp::array1d_format>::value), true);
+    ASSERT_EQUAL((bool) (::cuda::std::is_convertible<format,cusp::sparse_format>::value), false);
+    ASSERT_EQUAL((bool) (::cuda::std::is_convertible<format,cusp::dense_format>::value), true);
+    ASSERT_EQUAL((bool) (::cuda::std::is_convertible<format,cusp::known_format>::value), true);
+    #else
     ASSERT_EQUAL((bool) (thrust::detail::is_same<format,cusp::array1d_format>::value), true);
     ASSERT_EQUAL((bool) (thrust::detail::is_convertible<format,cusp::sparse_format>::value), false);
     ASSERT_EQUAL((bool) (thrust::detail::is_convertible<format,cusp::dense_format>::value), true);
     ASSERT_EQUAL((bool) (thrust::detail::is_convertible<format,cusp::known_format>::value), true);
+    #endif
 }
 DECLARE_UNITTEST(TestMatrixFormatArray1d);
 
 void TestMatrixFormatArray2d(void)
 {
     typedef A2D::format format;
+    #if THRUST_VERSION >= 200500
+    ASSERT_EQUAL((bool) (::cuda::std::is_same<format,cusp::array2d_format>::value), true);
+    ASSERT_EQUAL((bool) (::cuda::std::is_convertible<format,cusp::sparse_format>::value),false);
+    ASSERT_EQUAL((bool) (::cuda::std::is_convertible<format,cusp::dense_format>::value), true);
+    ASSERT_EQUAL((bool) (::cuda::std::is_convertible<format,cusp::known_format>::value), true);
+    #else
     ASSERT_EQUAL((bool) (thrust::detail::is_same<format,cusp::array2d_format>::value), true);
     ASSERT_EQUAL((bool) (thrust::detail::is_convertible<format,cusp::sparse_format>::value),false);
     ASSERT_EQUAL((bool) (thrust::detail::is_convertible<format,cusp::dense_format>::value), true);
     ASSERT_EQUAL((bool) (thrust::detail::is_convertible<format,cusp::known_format>::value), true);
+    #endif
 }
 DECLARE_UNITTEST(TestMatrixFormatArray2d);
 
 void TestMatrixFormatCooMatrix(void)
 {
     typedef COO::format format;
+    #if THRUST_VERSION >= 200500
+    ASSERT_EQUAL((bool) (::cuda::std::is_same<format,cusp::coo_format>::value), true);
+    ASSERT_EQUAL((bool) (::cuda::std::is_convertible<format,cusp::sparse_format>::value), true);
+    ASSERT_EQUAL((bool) (::cuda::std::is_convertible<format,cusp::dense_format>::value), false);
+    ASSERT_EQUAL((bool) (::cuda::std::is_convertible<format,cusp::known_format>::value), true);
+    #else
     ASSERT_EQUAL((bool) (thrust::detail::is_same<format,cusp::coo_format>::value), true);
     ASSERT_EQUAL((bool) (thrust::detail::is_convertible<format,cusp::sparse_format>::value), true);
     ASSERT_EQUAL((bool) (thrust::detail::is_convertible<format,cusp::dense_format>::value), false);
     ASSERT_EQUAL((bool) (thrust::detail::is_convertible<format,cusp::known_format>::value), true);
+    #endif
 }
 DECLARE_UNITTEST(TestMatrixFormatCooMatrix);
 
 void TestMatrixFormatCsrMatrix(void)
 {
     typedef CSR::format format;
+    #if THRUST_VERSION >= 200500
+    ASSERT_EQUAL((bool) (::cuda::std::is_same<format,cusp::csr_format>::value), true);
+    ASSERT_EQUAL((bool) (::cuda::std::is_convertible<format,cusp::sparse_format>::value), true);
+    ASSERT_EQUAL((bool) (::cuda::std::is_convertible<format,cusp::dense_format>::value), false);
+    ASSERT_EQUAL((bool) (::cuda::std::is_convertible<format,cusp::known_format>::value), true);
+    #else
     ASSERT_EQUAL((bool) (thrust::detail::is_same<format,cusp::csr_format>::value), true);
     ASSERT_EQUAL((bool) (thrust::detail::is_convertible<format,cusp::sparse_format>::value), true);
     ASSERT_EQUAL((bool) (thrust::detail::is_convertible<format,cusp::dense_format>::value), false);
     ASSERT_EQUAL((bool) (thrust::detail::is_convertible<format,cusp::known_format>::value), true);
+    #endif
 }
 DECLARE_UNITTEST(TestMatrixFormatCsrMatrix);
 
 void TestMatrixFormatDiaMatrix(void)
 {
     typedef DIA::format format;
+    #if THRUST_VERSION >= 200500
+    ASSERT_EQUAL((bool) (::cuda::std::is_same<format,cusp::dia_format>::value), true);
+    ASSERT_EQUAL((bool) (::cuda::std::is_convertible<format,cusp::sparse_format>::value), true);
+    ASSERT_EQUAL((bool) (::cuda::std::is_convertible<format,cusp::dense_format>::value), false);
+    ASSERT_EQUAL((bool) (::cuda::std::is_convertible<format,cusp::known_format>::value), true);
+    #else
     ASSERT_EQUAL((bool) (thrust::detail::is_same<format,cusp::dia_format>::value), true);
     ASSERT_EQUAL((bool) (thrust::detail::is_convertible<format,cusp::sparse_format>::value), true);
     ASSERT_EQUAL((bool) (thrust::detail::is_convertible<format,cusp::dense_format>::value), false);
     ASSERT_EQUAL((bool) (thrust::detail::is_convertible<format,cusp::known_format>::value), true);
+    #endif
 }
 DECLARE_UNITTEST(TestMatrixFormatDiaMatrix);
 
 void TestMatrixFormatEllMatrix(void)
 {
     typedef ELL::format format;
+    #if THRUST_VERSION >= 200500
+    ASSERT_EQUAL((bool) (::cuda::std::is_same<format,cusp::ell_format>::value), true);
+    ASSERT_EQUAL((bool) (::cuda::std::is_convertible<format,cusp::sparse_format>::value), true);
+    ASSERT_EQUAL((bool) (::cuda::std::is_convertible<format,cusp::dense_format>::value), false);
+    ASSERT_EQUAL((bool) (::cuda::std::is_convertible<format,cusp::known_format>::value), true);
+    #else
     ASSERT_EQUAL((bool) (thrust::detail::is_same<format,cusp::ell_format>::value), true);
     ASSERT_EQUAL((bool) (thrust::detail::is_convertible<format,cusp::sparse_format>::value), true);
     ASSERT_EQUAL((bool) (thrust::detail::is_convertible<format,cusp::dense_format>::value), false);
     ASSERT_EQUAL((bool) (thrust::detail::is_convertible<format,cusp::known_format>::value), true);
+    #endif
 }
 DECLARE_UNITTEST(TestMatrixFormatEllMatrix);
 
 void TestMatrixFormatHybMatrix(void)
 {
     typedef HYB::format format;
+    #if THRUST_VERSION >= 200500
+    ASSERT_EQUAL((bool) (::cuda::std::is_same<format,cusp::hyb_format>::value), true);
+    ASSERT_EQUAL((bool) (::cuda::std::is_convertible<format,cusp::sparse_format>::value), true);
+    ASSERT_EQUAL((bool) (::cuda::std::is_convertible<format,cusp::dense_format>::value), false);
+    ASSERT_EQUAL((bool) (::cuda::std::is_convertible<format,cusp::known_format>::value), true);
+    #else
     ASSERT_EQUAL((bool) (thrust::detail::is_same<format,cusp::hyb_format>::value), true);
     ASSERT_EQUAL((bool) (thrust::detail::is_convertible<format,cusp::sparse_format>::value), true);
     ASSERT_EQUAL((bool) (thrust::detail::is_convertible<format,cusp::dense_format>::value), false);
     ASSERT_EQUAL((bool) (thrust::detail::is_convertible<format,cusp::known_format>::value), true);
+    #endif
 }
 DECLARE_UNITTEST(TestMatrixFormatHybMatrix);
 

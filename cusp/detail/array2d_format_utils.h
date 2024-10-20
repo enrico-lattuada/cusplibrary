@@ -25,6 +25,10 @@
 #include <cusp/array1d.h>
 #include <cusp/iterator/strided_iterator.h>
 
+#if THRUST_VERSION >= 200500
+#include <cuda/std/type_traits>
+#endif
+
 namespace cusp
 {
 
@@ -224,6 +228,16 @@ struct row_or_column_view<Iterator,false>
     }
 };
 
+#if THRUST_VERSION >= 200500
+template <typename Orientation, typename IsTranspose = typename Orientation::transpose>
+struct transpose_orientation
+      : thrust::detail::eval_if<
+          ::cuda::std::is_same<Orientation, cusp::row_major_base<IsTranspose> >::value,
+          thrust::detail::identity_<cusp::column_major_base<thrust::detail::not_<IsTranspose> > >,
+          thrust::detail::identity_<cusp::row_major_base<thrust::detail::not_<IsTranspose> > >
+        > // if orientation
+{};
+#else
 template <typename Orientation, typename IsTranspose = typename Orientation::transpose>
 struct transpose_orientation
       : thrust::detail::eval_if<
@@ -232,6 +246,7 @@ struct transpose_orientation
           thrust::detail::identity_<cusp::row_major_base<thrust::detail::not_<IsTranspose> > >
         > // if orientation
 {};
+#endif
 
 } // end namespace detail
 

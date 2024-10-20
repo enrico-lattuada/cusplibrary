@@ -24,6 +24,9 @@
 #include <cusp/exception.h>
 
 #include <thrust/sort.h>
+#if THRUST_VERSION >= 200500
+#include <cuda/std/type_traits>
+#endif
 
 #include <vector>
 #include <string>
@@ -423,7 +426,11 @@ void read_array_stream(cusp::array2d<ValueType,cusp::host_memory>& mtx, Stream& 
 template <typename IndexType, typename ValueType, typename Stream>
 void write_coordinate_stream(const cusp::coo_matrix<IndexType,ValueType,cusp::host_memory>& coo, Stream& output)
 {
+    #if THRUST_VERSION >= 200500
+    bool is_complex = ::cuda::std::is_same<ValueType, cusp::complex<typename cusp::norm_type<ValueType>::type> >::value;
+    #else
     bool is_complex = thrust::detail::is_same<ValueType, cusp::complex<typename cusp::norm_type<ValueType>::type> >::value;
+    #endif
 
     if (is_complex)
         output << "%%MatrixMarket matrix coordinate complex general\n";
@@ -496,7 +503,11 @@ void write_matrix_market_stream(const Matrix& mtx, Stream& output, cusp::array1d
 {
     typedef typename Matrix::value_type ValueType;
 
+    #if THRUST_VERSION >= 200500
+    bool is_complex = ::cuda::std::is_same<ValueType, cusp::complex<typename cusp::norm_type<ValueType>::type> >::value;
+    #else
     bool is_complex = thrust::detail::is_same<ValueType, cusp::complex<typename cusp::norm_type<ValueType>::type> >::value;
+    #endif
 
     if (is_complex)
         output << "%%MatrixMarket matrix array complex general\n";
@@ -517,7 +528,11 @@ void write_matrix_market_stream(const Matrix& mtx, Stream& output, cusp::array2d
 {
     typedef typename Matrix::value_type ValueType;
 
+    #if THRUST_VERSION >= 200500
+    bool is_complex = ::cuda::std::is_same<ValueType, cusp::complex<typename cusp::norm_type<ValueType>::type> >::value;
+    #else
     bool is_complex = thrust::detail::is_same<ValueType, cusp::complex<typename cusp::norm_type<ValueType>::type> >::value;
+    #endif
 
     if (is_complex)
         output << "%%MatrixMarket matrix array complex general\n";

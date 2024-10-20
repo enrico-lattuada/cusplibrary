@@ -30,6 +30,9 @@
 #include <cusp/detail/matrix_base.h>
 
 #include <thrust/functional.h>
+#if THRUST_VERSION >= 200500
+#include <cuda/std/type_traits>
+#endif
 
 namespace cusp
 {
@@ -111,27 +114,51 @@ public:
     typedef cusp::array2d_view<typename values_array_type::view, Orientation> view;
     typedef cusp::array2d_view<typename values_array_type::const_view, Orientation> const_view;
 
+    #if THRUST_VERSION >= 200500
+    typedef cusp::detail::row_or_column_view<
+        typename values_array_type::iterator,::cuda::std::is_same<Orientation,cusp::row_major>::value
+      > row_view_type;
+    #else
     typedef cusp::detail::row_or_column_view<
         typename values_array_type::iterator,thrust::detail::is_same<Orientation,cusp::row_major>::value
       > row_view_type;
+    #endif
 
     typedef typename row_view_type::ArrayType row_view;
 
+    #if THRUST_VERSION >= 200500
+    typedef cusp::detail::row_or_column_view<
+        typename values_array_type::iterator,::cuda::std::is_same<Orientation,cusp::column_major>::value
+      > column_view_type;
+    #else
     typedef cusp::detail::row_or_column_view<
         typename values_array_type::iterator,thrust::detail::is_same<Orientation,cusp::column_major>::value
       > column_view_type;
+    #endif
 
     typedef typename column_view_type::ArrayType column_view;
 
+    #if THRUST_VERSION >= 200500
+    typedef cusp::detail::row_or_column_view<
+        typename values_array_type::const_iterator,::cuda::std::is_same<Orientation,cusp::row_major>::value
+      > const_row_view_type;
+    #else
     typedef cusp::detail::row_or_column_view<
         typename values_array_type::const_iterator,thrust::detail::is_same<Orientation,cusp::row_major>::value
       > const_row_view_type;
+    #endif
 
     typedef typename const_row_view_type::ArrayType const_row_view;
 
+    #if THRUST_VERSION >= 200500
+    typedef cusp::detail::row_or_column_view<
+        typename values_array_type::const_iterator,::cuda::std::is_same<Orientation,cusp::column_major>::value
+      > const_column_view_type;
+    #else
     typedef cusp::detail::row_or_column_view<
         typename values_array_type::const_iterator,thrust::detail::is_same<Orientation,cusp::column_major>::value
       > const_column_view_type;
+    #endif
 
     typedef typename const_column_view_type::ArrayType const_column_view;
 
@@ -349,14 +376,26 @@ public:
 
     typedef cusp::array2d_view<ArrayView, Orientation> view;
 
+    #if THRUST_VERSION >= 200500
+    typedef cusp::detail::row_or_column_view<
+        typename values_array_type::iterator,::cuda::std::is_same<Orientation,cusp::row_major>::value
+      > row_view_type;
+    #else
     typedef cusp::detail::row_or_column_view<
         typename values_array_type::iterator,thrust::detail::is_same<Orientation,cusp::row_major>::value
       > row_view_type;
+    #endif
     typedef typename row_view_type::ArrayType row_view;
 
+    #if THRUST_VERSION >= 200500
+    typedef cusp::detail::row_or_column_view<
+        typename values_array_type::iterator,::cuda::std::is_same<Orientation,cusp::column_major>::value
+      > column_view_type;
+    #else
     typedef cusp::detail::row_or_column_view<
         typename values_array_type::iterator,thrust::detail::is_same<Orientation,cusp::column_major>::value
       > column_view_type;
+    #endif
     typedef typename column_view_type::ArrayType column_view;
 
     typedef typename cusp::detail::transpose_orientation<Orientation>::type transpose_orientation;

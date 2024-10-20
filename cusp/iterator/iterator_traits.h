@@ -32,6 +32,10 @@
 
 #include <cusp/detail/config.h>
 #include <thrust/iterator/iterator_traits.h>
+
+#if THRUST_VERSION >= 200500
+#include <cuda/std/type_traits>
+#endif
 #include <iterator>
 
 #include <cusp/iterator/detail/host_system_tag.h>
@@ -40,6 +44,44 @@
 
 namespace cusp
 {
+#if THRUST_VERSION >= 200500
+template<typename Space>
+struct iterator_system
+        // convertible to host iterator?
+        : thrust::detail::eval_if<
+          ::cuda::std::disjunction<
+            ::cuda::std::is_same<Space, thrust::host_system_tag>,
+            ::cuda::std::is_same<Space, cusp::host_memory>
+        >::value,
+
+        thrust::detail::identity_<cusp::host_memory>,
+
+        // convertible to device iterator?
+        thrust::detail::eval_if<
+          ::cuda::std::disjunction<
+            ::cuda::std::is_same<Space, thrust::device_system_tag>,
+            ::cuda::std::is_same<Space, cusp::device_memory>
+        >::value,
+
+        thrust::detail::identity_<cusp::device_memory>,
+
+        // convertible to any iterator?
+        thrust::detail::eval_if<
+          ::cuda::std::disjunction<
+            ::cuda::std::is_same<Space, thrust::any_system_tag>,
+            ::cuda::std::is_same<Space, cusp::any_memory>
+        >::value,
+
+        thrust::detail::identity_<cusp::any_memory>,
+
+        // unknown system
+        thrust::detail::identity_<void>
+        > // if any
+        > // if device
+        > // if host
+{
+}; // end iterator_system
+#else
 template<typename Space>
 struct iterator_system
         // convertible to host iterator?
@@ -76,5 +118,6 @@ struct iterator_system
         > // if host
 {
 }; // end iterator_system
+#endif
 
 } // end namespace cusp

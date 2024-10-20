@@ -24,6 +24,9 @@
 #include <thrust/system/cuda/detail/cross_system.h>
 #endif
 #include <thrust/detail/execute_with_allocator.h>
+#if THRUST_VERSION >= 200500
+#include <cuda/std/type_traits>
+#endif
 
 namespace cusp
 {
@@ -98,7 +101,11 @@ select_system(const cusp::cpp::execution_policy<System1> &system1, const executi
 
 template<typename System>
 inline __host__ __device__
+#if THRUST_VERSION >= 200500
+typename thrust::detail::disable_if<::cuda::std::is_convertible<thrust::any_system_tag,System>::value,execution_policy<System> &>::type
+#else
 typename thrust::detail::disable_if<thrust::detail::is_convertible<thrust::any_system_tag,System>::value,execution_policy<System> &>::type
+#endif
 // execution_policy<System>
 select_system(const execution_policy<System> &system, const par_t &)
 {

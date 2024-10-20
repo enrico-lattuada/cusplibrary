@@ -100,6 +100,77 @@ typedef enum
  *  }
  * \endcode
  */
+#if THRUST_VERSION >= 200500
+template <typename ValueType, typename MemorySpace>
+class gauss_seidel : public cusp::linear_operator<ValueType, MemorySpace>
+{
+public:
+
+    /* \cond */
+    cusp::array1d<int,MemorySpace> ordering;
+    cusp::array1d<int,cusp::host_memory> color_offsets;
+    cusp::array1d<ValueType,MemorySpace> diagonal;
+    sweep default_direction;
+    /* \endcond */
+
+    /*! This constructor creates an empty \p gauss_seidel smoother.
+     */
+    gauss_seidel(void) {}
+
+    /*! This constructor creates a \p gauss_seidel smoother using a given
+     *  matrix and sweeping strategy (FORWARD, BACKWARD, SYMMETRIC).
+     *
+     *  \tparam MatrixType Type of input matrix used to create this \p
+     *  gauss_seidel smoother.
+     *
+     *  \param A Input matrix used to create smoother.
+     *  \param default_direction Sweep strategy used to perform Gauss-Seidel
+     *  smoothing.
+     */
+    template <typename MatrixType>
+    gauss_seidel(const MatrixType& A, sweep default_direction=SYMMETRIC,
+                 typename thrust::detail::enable_if_convertible_t<typename MatrixType::format,cusp::csr_format>* = 0);
+
+    /*! Copy constructor for \p gauss_seidel smoother.
+     *
+     *  \tparam MemorySpace2 Memory space of input \p gauss_seidel smoother.
+     *
+     *  \param A Input \p gauss_seidel smoother.
+     */
+    template<typename MemorySpace2>
+    gauss_seidel(const gauss_seidel<ValueType,MemorySpace2>& A)
+        : ordering(A.ordering), color_offsets(A.color_offsets), default_direction(A.default_direction) {}
+
+    /*! Perform Gauss-Seidel relaxation using default sweep specified during
+     * construction of this \p gauss_seidel smoother
+     *
+     * \tparam MatrixType  Type of input matrix.
+     * \tparam VectorType1 Type of input right-hand side vector.
+     * \tparam VectorType2 Type of input approximate solution vector.
+     *
+     * \param A matrix of the linear system
+     * \param x approximate solution of the linear system
+     * \param b right-hand side of the linear system
+     */
+    template <typename MatrixType, typename VectorType1, typename VectorType2>
+    void operator()(const MatrixType& A, const VectorType1& b, VectorType2& x);
+
+    /*! Perform Gauss-Seidel relaxation using specified sweep strategy
+     *
+     * \tparam MatrixType  Type of input matrix.
+     * \tparam VectorType1 Type of input right-hand side vector.
+     * \tparam VectorType2 Type of input approximate solution vector.
+     *
+     * \param A matrix of the linear system
+     * \param x approximate solution of the linear system
+     * \param b right-hand side of the linear system
+     * \param direction sweeping strategy for this \p gauss_seidel smoother
+     * (FORWARD, BACKWARD, SYMMETRIC).
+     */
+    template <typename MatrixType, typename VectorType1, typename VectorType2>
+    void operator()(const MatrixType& A, const VectorType1& b, VectorType2& x, sweep direction);
+};
+#else
 template <typename ValueType, typename MemorySpace>
 class gauss_seidel : public cusp::linear_operator<ValueType, MemorySpace>
 {
@@ -169,6 +240,7 @@ public:
     template <typename MatrixType, typename VectorType1, typename VectorType2>
     void operator()(const MatrixType& A, const VectorType1& b, VectorType2& x, sweep direction);
 };
+#endif
 /*! \}
  */
 

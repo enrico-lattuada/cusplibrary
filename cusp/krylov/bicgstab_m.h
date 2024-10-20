@@ -46,11 +46,19 @@ void bicgstab_m(const thrust::detail::execution_policy_base<DerivedPolicy> &exec
 /**
  * \brief Multi-mass Biconjugate Gradient stabilized method
  */
+#if THRUST_VERSION >= 200500
+template <class LinearOperator,
+          class VectorType1, class VectorType2, class VectorType3>
+typename thrust::detail::enable_if_convertible_t<typename LinearOperator::format,cusp::known_format>
+bicgstab_m(LinearOperator& A,
+           VectorType1& x, VectorType2& b, VectorType3& sigma);
+#else
 template <class LinearOperator,
           class VectorType1, class VectorType2, class VectorType3>
 typename thrust::detail::enable_if_convertible<typename LinearOperator::format,cusp::known_format>::type
 bicgstab_m(LinearOperator& A,
            VectorType1& x, VectorType2& b, VectorType3& sigma);
+#endif
 
 template <typename DerivedPolicy,
           class LinearOperator,
@@ -134,6 +142,15 @@ void bicgstab_m(const thrust::detail::execution_policy_base<DerivedPolicy> &exec
  *
  *  \see \p monitor
  */
+#if THRUST_VERSION >= 200500
+template <class LinearOperator,
+          class VectorType1, class VectorType2, class VectorType3,
+          class Monitor>
+typename thrust::detail::enable_if_convertible_t<typename LinearOperator::format,cusp::known_format>
+bicgstab_m(LinearOperator& A,
+           VectorType1& x, VectorType2& b, VectorType3& sigma,
+           Monitor& monitor);
+#else
 template <class LinearOperator,
           class VectorType1, class VectorType2, class VectorType3,
           class Monitor>
@@ -141,6 +158,7 @@ typename thrust::detail::enable_if_convertible<typename LinearOperator::format,c
 bicgstab_m(LinearOperator& A,
            VectorType1& x, VectorType2& b, VectorType3& sigma,
            Monitor& monitor);
+#endif
 /*! \}
  */
 

@@ -8,6 +8,10 @@
 #include <thrust/iterator/iterator_traits.h>
 #include <thrust/detail/type_traits.h>
 
+#if THRUST_VERSION >= 200500
+#include <cuda/std/type_traits>
+#endif
+
 #include <unittest/exceptions.h>
 #include <unittest/util.h>
 
@@ -34,6 +38,17 @@ static size_t MAX_OUTPUT_LINES = 10;
 static double DEFAULT_RELATIVE_TOL = 1e-4;
 static double DEFAULT_ABSOLUTE_TOL = 1e-4;
 
+#if THRUST_VERSION >= 200500
+template<typename T>
+struct value_type
+{
+    typedef typename ::cuda::std::__remove_const_t<
+    typename ::cuda::std::__libcpp_remove_reference_t<
+    T
+    >
+    > type;
+};
+#else
 template<typename T>
 struct value_type
 {
@@ -43,6 +58,7 @@ struct value_type
     >::type
     >::type type;
 };
+#endif
 
 template<typename T>
 struct value_type< thrust::device_reference<T> >

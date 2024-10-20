@@ -30,6 +30,32 @@ namespace cusp
 namespace relaxation
 {
 
+#if THRUST_VERSION >= 200500
+template <typename ValueType, typename MemorySpace>
+template<typename MatrixType>
+gauss_seidel<ValueType,MemorySpace>
+::gauss_seidel(const MatrixType& A, sweep default_direction,
+               typename thrust::detail::enable_if_convertible_t<typename MatrixType::format,cusp::csr_format>*)
+    : ordering(A.num_rows), default_direction(default_direction)
+{
+    cusp::array1d<int,MemorySpace> colors(A.num_rows);
+    int max_colors = cusp::graph::vertex_coloring(A, colors);
+
+    thrust::sequence(ordering.begin(), ordering.end());
+    thrust::sort_by_key(colors.begin(), colors.end(), ordering.begin());
+
+    cusp::array1d<int,MemorySpace> temp(max_colors + 1);
+    thrust::reduce_by_key(colors.begin(),
+                          colors.end(),
+                          thrust::constant_iterator<int>(1),
+                          thrust::make_discard_iterator(),
+                          temp.begin());
+    thrust::exclusive_scan(temp.begin(), temp.end(), temp.begin(), 0);
+    color_offsets = temp;
+
+    cusp::extract_diagonal(A, diagonal);
+}
+#else
 template <typename ValueType, typename MemorySpace>
 template<typename MatrixType>
 gauss_seidel<ValueType,MemorySpace>
@@ -54,6 +80,7 @@ gauss_seidel<ValueType,MemorySpace>
 
     cusp::extract_diagonal(A, diagonal);
 }
+#endif
 
 // linear_operator
 template <typename ValueType, typename MemorySpace>

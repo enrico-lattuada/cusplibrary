@@ -32,6 +32,10 @@
 
 #include <thrust/iterator/zip_iterator.h>
 
+#if THRUST_VERSION >= 200500
+#include <cuda/std/type_traits>
+#endif
+
 namespace cusp
 {
 namespace system
@@ -49,17 +53,33 @@ struct ops
     typedef typename BinaryFunction::result_type ValueType;
     typedef thrust::minus<ValueType> Sub;
 
+    #if THRUST_VERSION >= 200500
+    typedef typename thrust::detail::eval_if<
+    ::cuda::std::is_same<Sub, BinaryFunction>::value
+    , thrust::detail::identity_< thrust::negate<ValueType> >
+    , thrust::detail::identity_< thrust::identity<ValueType> >
+    >::type unary_op_type;
+    #else
     typedef typename thrust::detail::eval_if<
     thrust::detail::is_same<Sub, BinaryFunction>::value
     , thrust::detail::identity_< thrust::negate<ValueType> >
     , thrust::detail::identity_< thrust::identity<ValueType> >
     >::type unary_op_type;
+    #endif
 
+    #if THRUST_VERSION >= 200500
+    typedef typename thrust::detail::eval_if<
+    ::cuda::std::is_same<Sub, BinaryFunction>::value
+    , thrust::detail::identity_< thrust::plus<ValueType> >
+    , thrust::detail::identity_< BinaryFunction >
+    >::type binary_op_type;
+    #else
     typedef typename thrust::detail::eval_if<
     thrust::detail::is_same<Sub, BinaryFunction>::value
     , thrust::detail::identity_< thrust::plus<ValueType> >
     , thrust::detail::identity_< BinaryFunction >
     >::type binary_op_type;
+    #endif
 };
 
 } // end elementwise_detail namespace

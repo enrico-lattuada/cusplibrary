@@ -19,12 +19,25 @@
 #include <thrust/device_allocator.h>
 #include <thrust/device_malloc_allocator.h>
 #include <thrust/iterator/iterator_traits.h>
+#if THRUST_VERSION >= 200500
+#include <cuda/std/type_traits>
+#endif
 
 #include <memory>
 
 namespace cusp
 {
 
+#if THRUST_VERSION >= 200500
+template<typename T, typename MemorySpace>
+struct default_memory_allocator
+        : thrust::detail::eval_if<
+        ::cuda::std::is_same<MemorySpace, host_memory>::value,
+        thrust::detail::identity_< std::allocator<T> >,
+        thrust::detail::identity_< thrust::device_malloc_allocator<T> >
+        >
+{};
+#else
 template<typename T, typename MemorySpace>
 struct default_memory_allocator
         : thrust::detail::eval_if<
@@ -33,6 +46,7 @@ struct default_memory_allocator
         thrust::detail::identity_< thrust::device_malloc_allocator<T> >
         >
 {};
+#endif
 
 template <typename MemorySpace1, typename MemorySpace2, typename MemorySpace3, typename MemorySpace4>
 struct minimum_space

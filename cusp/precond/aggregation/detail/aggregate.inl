@@ -126,6 +126,20 @@ void mis_aggregate(const MatrixType& A,
     return mis_aggregate(A, aggregates, roots);
 }
 
+#if THRUST_VERSION >= 200500
+template <typename DerivedPolicy,
+          typename MatrixType,
+          typename ArrayType1,
+          typename ArrayType2>
+typename thrust::detail::enable_if_convertible_t<typename MatrixType::memory_space,cusp::host_memory>
+aggregate(thrust::execution_policy<DerivedPolicy> &exec,
+          const MatrixType& A,
+                ArrayType1& aggregates,
+                ArrayType2& roots)
+{
+    return standard_aggregate(exec, A, aggregates, roots);
+}
+#else
 template <typename DerivedPolicy,
           typename MatrixType,
           typename ArrayType1,
@@ -138,6 +152,7 @@ aggregate(thrust::execution_policy<DerivedPolicy> &exec,
 {
     return standard_aggregate(exec, A, aggregates, roots);
 }
+#endif
 
 template <typename DerivedPolicy,
           typename MatrixType,

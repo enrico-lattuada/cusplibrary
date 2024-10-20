@@ -3,6 +3,9 @@
 #include <thrust/host_vector.h>
 #include <thrust/random.h>
 #include <thrust/detail/type_traits.h>
+#if THRUST_VERSION >= 200500
+#include <cuda/std/type_traits>
+#endif
 
 namespace unittest
 {
@@ -18,6 +21,19 @@ inline unsigned int hash(unsigned int a)
     return a;
 }
 
+#if THRUST_VERSION >= 200500
+template<typename T, bool is_float = ::cuda::std::is_floating_point<T>::value>
+  struct random_integer
+{
+  T operator()(unsigned int i) const
+  {
+      thrust::default_random_engine rng(hash(i));
+      thrust::uniform_int_distribution<T> dist;
+
+      return static_cast<T>(dist(rng));
+  }
+};
+#else
 template<typename T, bool is_float = thrust::detail::is_floating_point<T>::value>
   struct random_integer
 {
@@ -29,6 +45,7 @@ template<typename T, bool is_float = thrust::detail::is_floating_point<T>::value
       return static_cast<T>(dist(rng));
   }
 };
+#endif
 
 template<typename T>
   struct random_integer<T,true>

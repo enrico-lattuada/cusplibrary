@@ -884,6 +884,32 @@ void bicgstab_m(const thrust::detail::execution_policy_base<DerivedPolicy> &exec
 }
 
 // BiCGStab-M routine that uses the default monitor to determine completion
+#if THRUST_VERSION >= 200500
+template <typename LinearOperator,
+          typename VectorType1,
+          typename VectorType2,
+          typename VectorType3>
+typename thrust::detail::enable_if_convertible_t<typename LinearOperator::format,cusp::known_format>
+bicgstab_m(LinearOperator& A,
+           VectorType1& x,
+           VectorType2& b,
+           VectorType3& sigma)
+{
+    using thrust::system::detail::generic::select_system;
+
+    typedef typename LinearOperator::memory_space System1;
+    typedef typename VectorType1::memory_space    System2;
+    typedef typename VectorType2::memory_space    System3;
+    typedef typename VectorType3::memory_space    System4;
+
+    System1 system1;
+    System2 system2;
+    System3 system3;
+    System4 system4;
+
+    return cusp::krylov::bicgstab_m(select_system(system1,system2,system3,system4), A, x, b, sigma);
+}
+#else
 template <typename LinearOperator,
           typename VectorType1,
           typename VectorType2,
@@ -908,6 +934,7 @@ bicgstab_m(LinearOperator& A,
 
     return cusp::krylov::bicgstab_m(select_system(system1,system2,system3,system4), A, x, b, sigma);
 }
+#endif
 
 template <typename DerivedPolicy,
           typename LinearOperator,
@@ -927,6 +954,35 @@ void bicgstab_m(const thrust::detail::execution_policy_base<DerivedPolicy> &exec
     return bicgstab_m(thrust::detail::derived_cast(thrust::detail::strip_const(exec)), A, x, b, sigma, monitor);
 }
 
+#if THRUST_VERSION >= 200500
+// BiCGStab-M routine that takes a user specified monitor
+template <typename LinearOperator,
+          typename VectorType1,
+          typename VectorType2,
+          typename VectorType3,
+          typename Monitor>
+typename thrust::detail::enable_if_convertible_t<typename LinearOperator::format,cusp::known_format>
+bicgstab_m(LinearOperator& A,
+           VectorType1& x,
+           VectorType2& b,
+           VectorType3& sigma,
+           Monitor& monitor)
+{
+    using thrust::system::detail::generic::select_system;
+
+    typedef typename LinearOperator::memory_space System1;
+    typedef typename VectorType1::memory_space    System2;
+    typedef typename VectorType2::memory_space    System3;
+    typedef typename VectorType3::memory_space    System4;
+
+    System1 system1;
+    System2 system2;
+    System3 system3;
+    System4 system4;
+
+    return cusp::krylov::bicgstab_m(select_system(system1,system2,system3,system4), A, x, b, sigma, monitor);
+}
+#else
 // BiCGStab-M routine that takes a user specified monitor
 template <typename LinearOperator,
           typename VectorType1,
@@ -954,6 +1010,7 @@ bicgstab_m(LinearOperator& A,
 
     return cusp::krylov::bicgstab_m(select_system(system1,system2,system3,system4), A, x, b, sigma, monitor);
 }
+#endif
 
 } // end namespace krylov
 } // end namespace cusp

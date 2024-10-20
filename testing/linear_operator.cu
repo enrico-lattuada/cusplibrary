@@ -2,6 +2,10 @@
 
 #include <cusp/linear_operator.h>
 
+#if THRUST_VERSION >= 200500
+#include <cuda/std/type_traits>
+#endif
+
 template <class MemorySpace>
 void TestLinearOperator(void)
 {
@@ -14,8 +18,13 @@ void TestLinearOperator(void)
 
     ASSERT_EQUAL(A.num_rows, 4);
     ASSERT_EQUAL(A.num_cols, 3);
+    #if THRUST_VERSION >= 200500
+    ASSERT_EQUAL((bool) (::cuda::std::is_same<typename LinearOperator::value_type,float>::value), true);
+    ASSERT_EQUAL((bool) (::cuda::std::is_same<typename LinearOperator::index_type,long>::value), true);
+    #else
     ASSERT_EQUAL((bool) (thrust::detail::is_same<typename LinearOperator::value_type,float>::value), true);
     ASSERT_EQUAL((bool) (thrust::detail::is_same<typename LinearOperator::index_type,long>::value), true);
+    #endif
 }
 DECLARE_HOST_DEVICE_UNITTEST(TestLinearOperator);
 

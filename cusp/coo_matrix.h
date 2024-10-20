@@ -27,6 +27,10 @@
 
 #include <cusp/array1d.h>
 
+#if THRUST_VERSION >= 200500
+#include <cuda/std/type_traits>
+#endif
+
 namespace cusp
 {
 namespace detail
@@ -353,7 +357,11 @@ public:
     /**
      * Storage for indices used to generate COO view.
      */
+    #if THRUST_VERSION >= 200500
+    cusp::array1d<typename ::cuda::std::__remove_const_t<IndexType>,MemorySpace> indices;
+    #else
     cusp::array1d<typename thrust::detail::remove_const<IndexType>::type,MemorySpace> indices;
+    #endif
 
     /**
      * Construct an empty \p coo_matrix_view.

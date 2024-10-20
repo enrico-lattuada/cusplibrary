@@ -21,6 +21,15 @@
 
 #include <cusp/system/cuda/detail/cuda_launch_config.h>
 
+#if THRUST_VERSION >= 200400
+#define __CCCL_DEVICE _CCCL_DEVICE
+#define __CCCL_FORCEINLINE _CCCL_FORCEINLINE
+#else
+#include <thrust/system/cuda/detail/guarded_cuda_runtime_api.h>
+#define __CCCL_DEVICE __CCCL_DEVICE
+__CCCL_FORCEINLINE __CCCL_FORCEINLINE __thrust_forceinline__
+#endif
+
 namespace cusp
 {
 namespace system
@@ -42,11 +51,11 @@ struct thread_array : public launch_bounds<>
 {
 // CUDA built-in variables require nvcc
 #if THRUST_DEVICE_COMPILER == THRUST_DEVICE_COMPILER_NVCC
-  __device__ __thrust_forceinline__ unsigned int thread_index(void) const { return threadIdx.x; }
-  __device__ __thrust_forceinline__ unsigned int thread_count(void) const { return blockDim.x * gridDim.x; } 
+  __CCCL_DEVICE __CCCL_FORCEINLINE unsigned int thread_index(void) const { return threadIdx.x; }
+  __CCCL_DEVICE __CCCL_FORCEINLINE unsigned int thread_count(void) const { return blockDim.x * gridDim.x; } 
 #else
-  __device__ __thrust_forceinline__ unsigned int thread_index(void) const { return 0; }
-  __device__ __thrust_forceinline__ unsigned int thread_count(void) const { return 0; } 
+  __CCCL_DEVICE __CCCL_FORCEINLINE unsigned int thread_index(void) const { return 0; }
+  __CCCL_DEVICE __CCCL_FORCEINLINE unsigned int thread_count(void) const { return 0; } 
 #endif // THRUST_DEVICE_COMPILER_NVCC
 };
 
@@ -54,19 +63,19 @@ struct blocked_thread_array : public launch_bounds<>
 {
 // CUDA built-in variables require nvcc
 #if THRUST_DEVICE_COMPILER == THRUST_DEVICE_COMPILER_NVCC
-  __device__ __thrust_forceinline__ unsigned int thread_index(void)    const { return threadIdx.x; }
-  __device__ __thrust_forceinline__ unsigned int block_dimension(void) const { return blockDim.x;  } 
-  __device__ __thrust_forceinline__ unsigned int block_index(void)     const { return blockIdx.x;  }
-  __device__ __thrust_forceinline__ unsigned int grid_dimension(void)  const { return gridDim.x;   }
-  __device__ __thrust_forceinline__ unsigned int linear_index(void)    const { return block_dimension() * block_index() + thread_index(); }
-  __device__ __thrust_forceinline__ void         barrier(void)               { __syncthreads();    }
+  __CCCL_DEVICE __CCCL_FORCEINLINE unsigned int thread_index(void)    const { return threadIdx.x; }
+  __CCCL_DEVICE __CCCL_FORCEINLINE unsigned int block_dimension(void) const { return blockDim.x;  } 
+  __CCCL_DEVICE __CCCL_FORCEINLINE unsigned int block_index(void)     const { return blockIdx.x;  }
+  __CCCL_DEVICE __CCCL_FORCEINLINE unsigned int grid_dimension(void)  const { return gridDim.x;   }
+  __CCCL_DEVICE __CCCL_FORCEINLINE unsigned int linear_index(void)    const { return block_dimension() * block_index() + thread_index(); }
+  __CCCL_DEVICE __CCCL_FORCEINLINE void         barrier(void)               { __syncthreads();    }
 #else
-  __device__ __thrust_forceinline__ unsigned int thread_index(void)    const { return 0; }
-  __device__ __thrust_forceinline__ unsigned int block_dimension(void) const { return 0; }
-  __device__ __thrust_forceinline__ unsigned int block_index(void)     const { return 0; }
-  __device__ __thrust_forceinline__ unsigned int grid_dimension(void)  const { return 0; }
-  __device__ __thrust_forceinline__ unsigned int linear_index(void)    const { return 0; }
-  __device__ __thrust_forceinline__ void         barrier(void)               {           }
+  __CCCL_DEVICE __CCCL_FORCEINLINE unsigned int thread_index(void)    const { return 0; }
+  __CCCL_DEVICE __CCCL_FORCEINLINE unsigned int block_dimension(void) const { return 0; }
+  __CCCL_DEVICE __CCCL_FORCEINLINE unsigned int block_index(void)     const { return 0; }
+  __CCCL_DEVICE __CCCL_FORCEINLINE unsigned int grid_dimension(void)  const { return 0; }
+  __CCCL_DEVICE __CCCL_FORCEINLINE unsigned int linear_index(void)    const { return 0; }
+  __CCCL_DEVICE __CCCL_FORCEINLINE void         barrier(void)               {           }
 #endif // THRUST_DEVICE_COMPILER_NVCC
 };
 
@@ -75,19 +84,19 @@ struct statically_blocked_thread_array : public launch_bounds<_ThreadsPerBlock,1
 {
 // CUDA built-in variables require nvcc
 #if THRUST_DEVICE_COMPILER == THRUST_DEVICE_COMPILER_NVCC
-  __device__ __thrust_forceinline__ unsigned int thread_index(void)    const { return threadIdx.x;      }
-  __device__ __thrust_forceinline__ unsigned int block_dimension(void) const { return _ThreadsPerBlock; } // minor optimization
-  __device__ __thrust_forceinline__ unsigned int block_index(void)     const { return blockIdx.x;       }
-  __device__ __thrust_forceinline__ unsigned int grid_dimension(void)  const { return gridDim.x;        }
-  __device__ __thrust_forceinline__ unsigned int linear_index(void)    const { return block_dimension() * block_index() + thread_index(); }
-  __device__ __thrust_forceinline__ void         barrier(void)               { __syncthreads();    }
+  __CCCL_DEVICE __CCCL_FORCEINLINE unsigned int thread_index(void)    const { return threadIdx.x;      }
+  __CCCL_DEVICE __CCCL_FORCEINLINE unsigned int block_dimension(void) const { return _ThreadsPerBlock; } // minor optimization
+  __CCCL_DEVICE __CCCL_FORCEINLINE unsigned int block_index(void)     const { return blockIdx.x;       }
+  __CCCL_DEVICE __CCCL_FORCEINLINE unsigned int grid_dimension(void)  const { return gridDim.x;        }
+  __CCCL_DEVICE __CCCL_FORCEINLINE unsigned int linear_index(void)    const { return block_dimension() * block_index() + thread_index(); }
+  __CCCL_DEVICE __CCCL_FORCEINLINE void         barrier(void)               { __syncthreads();    }
 #else
-  __device__ __thrust_forceinline__ unsigned int thread_index(void)    const { return 0; }
-  __device__ __thrust_forceinline__ unsigned int block_dimension(void) const { return 0; }
-  __device__ __thrust_forceinline__ unsigned int block_index(void)     const { return 0; }
-  __device__ __thrust_forceinline__ unsigned int grid_dimension(void)  const { return 0; }
-  __device__ __thrust_forceinline__ unsigned int linear_index(void)    const { return 0; }
-  __device__ __thrust_forceinline__ void         barrier(void)               {           }
+  __CCCL_DEVICE __CCCL_FORCEINLINE unsigned int thread_index(void)    const { return 0; }
+  __CCCL_DEVICE __CCCL_FORCEINLINE unsigned int block_dimension(void) const { return 0; }
+  __CCCL_DEVICE __CCCL_FORCEINLINE unsigned int block_index(void)     const { return 0; }
+  __CCCL_DEVICE __CCCL_FORCEINLINE unsigned int grid_dimension(void)  const { return 0; }
+  __CCCL_DEVICE __CCCL_FORCEINLINE unsigned int linear_index(void)    const { return 0; }
+  __CCCL_DEVICE __CCCL_FORCEINLINE void         barrier(void)               {           }
 #endif // THRUST_DEVICE_COMPILER_NVCC
 };
 

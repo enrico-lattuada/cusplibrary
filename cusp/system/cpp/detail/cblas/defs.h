@@ -22,6 +22,10 @@
 
 #include <cblas.h>
 
+#if THRUST_VERSION >= 200500
+#include <cuda/std/type_traits>
+#endif
+
 namespace cusp
 {
 namespace system
@@ -43,6 +47,15 @@ struct nonunit : public cblas_format {};
 struct cblas_row_major { const static CBLAS_ORDER order = CblasRowMajor; };
 struct cblas_col_major { const static CBLAS_ORDER order = CblasColMajor; };
 
+#if THRUST_VERSION >= 200500
+template< typename LayoutFormat >
+struct Orientation : thrust::detail::eval_if<
+                        ::cuda::std::is_same<LayoutFormat, cusp::row_major>::value,
+                        thrust::detail::identity_<cblas_row_major>,
+                        thrust::detail::identity_<cblas_col_major>
+                     >
+{};
+#else
 template< typename LayoutFormat >
 struct Orientation : thrust::detail::eval_if<
                         thrust::detail::is_same<LayoutFormat, cusp::row_major>::value,
@@ -50,6 +63,7 @@ struct Orientation : thrust::detail::eval_if<
                         thrust::detail::identity_<cblas_col_major>
                      >
 {};
+#endif
 
 } // end namespace cblas
 } // end namespace detail

@@ -31,6 +31,9 @@
 #include <cusp/precond/smoother/jacobi_smoother.h>
 
 #include <thrust/detail/use_default.h>
+#if THRUST_VERSION >= 200500
+#include <cuda/std/type_traits>
+#endif
 
 namespace cusp
 {
@@ -39,17 +42,33 @@ namespace detail
   template <typename FormatType, typename MemorySpace>
   struct select_format_type
   {
+    #if THRUST_VERSION >= 200500
+    typedef typename thrust::detail::eval_if<
+        ::cuda::std::is_same<MemorySpace, cusp::host_memory>::value
+      , thrust::detail::identity_<cusp::csr_format>
+      , thrust::detail::identity_<cusp::hyb_format>
+      >::type DefaultFormat;
+    #else
     typedef typename thrust::detail::eval_if<
         thrust::detail::is_same<MemorySpace, cusp::host_memory>::value
       , thrust::detail::identity_<cusp::csr_format>
       , thrust::detail::identity_<cusp::hyb_format>
       >::type DefaultFormat;
+    #endif
 
+    #if THRUST_VERSION >= 200500
+    typedef typename thrust::detail::eval_if<
+          ::cuda::std::is_same<FormatType, thrust::use_default>::value
+        , thrust::detail::identity_<DefaultFormat>
+        , thrust::detail::identity_<FormatType>
+      >::type type;
+    #else
     typedef typename thrust::detail::eval_if<
           thrust::detail::is_same<FormatType, thrust::use_default>::value
         , thrust::detail::identity_<DefaultFormat>
         , thrust::detail::identity_<FormatType>
       >::type type;
+    #endif
   };
 
   template <typename SmootherType, typename ValueType, typename MemorySpace>
@@ -57,11 +76,19 @@ namespace detail
   {
     typedef cusp::precond::jacobi_smoother<ValueType,MemorySpace> JacobiSmoother;
 
+    #if THRUST_VERSION >= 200500
+    typedef typename thrust::detail::eval_if<
+          ::cuda::std::is_same<SmootherType, thrust::use_default>::value
+        , thrust::detail::identity_<JacobiSmoother>
+        , thrust::detail::identity_<SmootherType>
+      >::type type;
+    #else
     typedef typename thrust::detail::eval_if<
           thrust::detail::is_same<SmootherType, thrust::use_default>::value
         , thrust::detail::identity_<JacobiSmoother>
         , thrust::detail::identity_<SmootherType>
       >::type type;
+    #endif
   };
 
   template <typename SolverType, typename ValueType, typename MemorySpace>
@@ -69,11 +96,19 @@ namespace detail
   {
     typedef cusp::detail::lu_solver<ValueType,cusp::host_memory> LUSolver;
 
+    #if THRUST_VERSION >= 200500
+    typedef typename thrust::detail::eval_if<
+          ::cuda::std::is_same<SolverType, thrust::use_default>::value
+        , thrust::detail::identity_<LUSolver>
+        , thrust::detail::identity_<SolverType>
+      >::type type;
+    #else
     typedef typename thrust::detail::eval_if<
           thrust::detail::is_same<SolverType, thrust::use_default>::value
         , thrust::detail::identity_<LUSolver>
         , thrust::detail::identity_<SolverType>
       >::type type;
+    #endif
   };
 } // end detail namespace
 
